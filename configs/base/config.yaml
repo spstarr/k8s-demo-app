@@ -1,0 +1,4 @@
+config:
+    timeoutValue: 10
+    testingString: "Some Test String"
+    entryFromBase: "This is BASE value"

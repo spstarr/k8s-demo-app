@@ -1,0 +1,48 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-demo
+spec:
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    #- type: Resource
+    #  resource: 
+    #    name: cpu
+    #    target: 
+    #      type: Utilization
+    #      averageUtilization: 50
+    #- type: Resource
+    #  resource: 
+    #    name: memory
+    #    target: 
+    #      type: Utilization
+    #      averageUtilization: 50
+    - type: Pods
+      pods:
+        metric:
+          name: demo_http_requests_per_second
+        target:
+          averageValue: "2"
+          type: AverageValue
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-demo
+
+  behavior: # Optional: Define custom scaling behavior
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0 # Scale up immediately
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 60

@@ -1,0 +1,28 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: skaffold-my-demo
+
+profiles:
+  - name: dev
+    build:
+      local:
+        useDockerCLI: false
+        push: true
+      tagPolicy:
+        sha256: {}
+      artifacts:
+        - image: localhost:5000/my-demo
+          docker:
+            dockerfile: Dockerfile
+
+    manifests:
+      kustomize:
+        paths:
+          - deployments/kustomize/overlays/dev
+        buildArgs: ["--load-restrictor LoadRestrictionsNone", "--enable-alpha-plugins", "--enable-exec"]
+    deploy:
+      kubectl:
+        flags:
+          disableValidation: false
+        defaultNamespace: test

@@ -1,0 +1,4 @@
+config:
+    timeoutValue: 100
+    testingString: "Developers Overlay override"
+    developTesting: "This is DEVELOPMENT OVERLAY value found only from this overlay"

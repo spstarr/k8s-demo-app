@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-demo
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: my-demo
+          image: localhost:5000/my-demo:latest
+          resizePolicy:
+          - resourceName: cpu
+            restartPolicy: NotRequired # Default, but explicit here
+          #- resourceName: memory
+          #  restartPolicy: RestartContainer
+          env:
+          - name: DEPLOYMENT_NAMESPACE
+            value: test

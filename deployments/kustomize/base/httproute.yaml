@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app-route
+  namespace: test
+spec:
+  parentRefs:
+  - name: test # Changed to the new Gateway name
+    namespace: test
+  hostnames:
+  - "myapp.sh0n.net" # Must match the hostname in the Gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: my-demo
+      port: 6500

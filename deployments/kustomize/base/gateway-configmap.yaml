@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-params
+  namespace: test
+data:
+  # The 'service' key contains a YAML string that represents the
+  # desired modifications to the generated Kubernetes Service spec.
+  service: |
+    spec:
+      externalTrafficPolicy: Local

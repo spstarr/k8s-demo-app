@@ -1,0 +1,22 @@
+# Base customizations we are using for Demo
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- deployment.yaml
+- service.yaml
+- pdb.yaml
+- hpa.yaml
+- pv.yaml
+- pvc.yaml
+- gateway-configmap.yaml
+- gateway.yaml
+- httproute.yaml
+- servicemonitor.yaml
+
+# This will be shared in labels and selectors
+commonLabels:
+  app.kubernetes.io/managed-by: me
+
+generatorOptions:
+  disableNameSuffixHash: false

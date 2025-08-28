@@ -1,0 +1,86 @@
+# Development customizations we are using for Demo
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+#commonAnnotations:
+
+# Use new-style KRM Functions   
+generators:
+  - /workspace/demo-kustomize-plugins/generators/dev/yamlToConfigMap.yaml
+
+generatorOptions:
+   disableNameSuffixHash: false
+
+# The first ConfigMap will not be deployed it is for Kustomize to utilize during rendering configurations
+configMapGenerator:
+  - name: demo-kustomize-env-variables
+    envs:
+     - .kustomize-env
+    options:
+      disableNameSuffixHash: true
+      labels:
+          app.kubernetes.io/owner: me
+      annotations:
+          config.kubernetes.io/local-config: "true"
+          
+  - name: demo-app-configmap
+    files:
+    - ../../../../configs/dev/demo.conf
+    options:
+      labels:
+          app.kubernetes.io/owner: me
+
+patches:
+  - target:
+       kind: ConfigMap
+       name: demo-app-configmap.*
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: my-app
+  - target:
+       kind: ConfigMap
+       name: demo-app-configmap.*
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-config-app
+
+#replacements:
+#  - source:
+#        kind: ConfigMap
+#        name: demo-kustomize-env-variables
+#        fieldPath: data.COMPONENT_TAG
+#    targets:
+#      - select:
+#           kind: Deployment
+#        fieldPaths:
+#          - spec.template.spec.containers.[name=my-demo].image
+#        options:
+#          delimiter: ":"
+#          index: 1
+
+replacements:
+  - source:
+         kind: ConfigMap
+         name: demo-kustomize-env-variables
+         fieldPath: data.NAMESPACE
+    targets:
+      - select:
+           kind: Deployment
+        fieldPaths:
+          - spec.template.spec.containers.[name=my-demo].env.[name=DEPLOYMENT_CLUSTER].value
+
+bases:
+- ../../base
+
+patchesStrategicMerge:
+- deployment.yaml
+
+# Found in this overlay
+#resources:
+#- podmonitoring.yaml
+
+# Use new-style KRM Function plugins
+transformers:
+ - /workspace/demo-kustomize-plugins/transformers/labels.yaml

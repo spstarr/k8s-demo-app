@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: my-demo
+  namespace: test
+  labels:
+    # Must match the helm chart release name
+    release: prometheus
+    serviceMonitorSelector: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: my-demo
+  endpoints:
+  - interval: 5s
+    targetPort: 6500
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - test

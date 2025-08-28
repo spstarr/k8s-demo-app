@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+  annotations:
+    #storageclass.kubernetes.io/is-default-class: "true" # Optional: to make this the default
+provisioner: kubernetes.io/local-storage-provisioner # Or your specific provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain # Or Delete, based on your needs
+parameters:
+  path: /build/data # Path on the nodes

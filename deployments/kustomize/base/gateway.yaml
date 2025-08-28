@@ -1,0 +1,30 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: test
+  namespace: test
+spec:
+  gatewayClassName: istio
+  listeners:
+#  - name: http
+#    protocol: HTTP
+#    port: 80
+#    allowedRoutes:
+#      namespaces:
+#        from: Same
+  - name: https
+    hostname: '*.sh0n.net'
+    port: 443
+    protocol: HTTPS
+    tls: 
+      mode: Terminate
+      certificateRefs:
+        - name: tls-cert
+    allowedRoutes:
+      namespaces:
+        from: Same
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: gateway-params

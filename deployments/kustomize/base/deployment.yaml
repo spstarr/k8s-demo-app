@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-demo
+  labels:
+     app.kubernetes.io/name: my-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app.kubernetes.io/name: my-demo
+  template:
+    metadata:
+      annotations:
+      
+        # Rewrite health probes
+        #sidecar.istio.io/rewriteAppHTTPProbers: "true"
+  
+        # Wait for the Istio sidecar to be running first so we don't run into funny networking business
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "6500"
+
+      labels:
+        sidecar.istio.io/inject: "true"
+        app.kubernetes.io/name: my-demo
+    spec:
+      securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+          fsGroupChangePolicy: Always
+
+      # Do not allow using mapping for host usernames into pod - NEW
+      hostUsers: false
+
+      containers:
+        - name: my-demo
+          image: localhost:5000/my-demo:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+          volumeMounts:
+            - name: demo-configmaps-volume
+              mountPath: /etc/demo/configs
+            - name: demo-app-configmap-volume
+              mountPath: /app/configs
+            - name: my-pvc-storage
+              mountPath: /test
+          ports:
+            - name: http
+              containerPort: 6500
+          resources: 
+            requests:
+              cpu: 100m
+          env:
+          - name: NODE_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+
+          # Heartbeat check for running service
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /live
+              port: 6500
+              httpHeaders:
+                - name: User-Agent
+                  value: MyAppDemoHealthChecker
+            initialDelaySeconds: 0
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 1
+
+            # Override pod-level terminiation grace period
+            terminationGracePeriodSeconds: 60
+
+          # For incoming traffic use a readiness probe
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /live
+              port: 6500
+            initialDelaySeconds: 0
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 1
+
+      volumes:
+        - name: demo-configmaps-volume
+          configMap:
+            name: demo-app-configmap
+        - name: demo-app-configmap-volume
+          configMap:
+            name: my-app-configmap
+        - name: my-pvc-storage
+          persistentVolumeClaim:
+            claimName: my-persistentvolume-claim
