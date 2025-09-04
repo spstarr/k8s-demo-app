@@ -6,7 +6,7 @@
      "(^|/)Dockerfile(\\.[^/]+)?$",
      ".*\\.(ya?ml)$",
      ".*\\.(tf|tfvars|tf\\.json)$",
-     ".*\\.
-  (js|cjs|mjs|jsx|ts|tsx|py|go|java|kt|rb|cs|cpp|c|swift|rs|php|scala|sh)$"
+     ".*\\.",
+  "(js|cjs|mjs|jsx|ts|tsx|py|go|java|kt|rb|cs|cpp|c|swift|rs|php|scala|sh)$"
   ]
 }
