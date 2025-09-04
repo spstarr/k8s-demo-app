@@ -30,7 +30,7 @@ jobs:
 
       - name: Perform OpenGrep Analysis
         run: |
-           opengrep scan -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto ${{ github.workspace }} > opengrep-results.sarif
+           opengrep scan -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto --source-root=${{ github.workspace }} > opengrep-results.sarif
         #outputs: maybe?
         #
       - name: Upload SARIF file results to GitHub Security
