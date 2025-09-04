@@ -24,6 +24,9 @@ jobs:
       security-events: write
       packages: read
 
+    strategy:
+      fail-fast: true
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
