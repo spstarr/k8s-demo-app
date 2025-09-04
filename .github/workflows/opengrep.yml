@@ -13,6 +13,9 @@ concurrency:
   group: ${{ github.workflow }}--${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  OPENGREP_VERSION: 1.9.0
+
 jobs:
   opengrep:
     name: OpenGrep Scanning
@@ -31,13 +34,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download OpenGrep 1.9.0
+      - name: Download OpenGrep v${{ env.OPENGREP_VERSION }}
         run: |
-           wget -q -O /tmp/opengrep.sig.base64 https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86.sig
-           wget -q -O /tmp/opengrep.pem.base64 https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86.cert
-           wget -q -O /tmp/opengrep https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86
+           wget -q -O /tmp/opengrep.sig.base64 https://github.com/opengrep/opengrep/releases/download/v${{ env.OPENGREP_VERSION }}/opengrep_manylinux_x86.sig
+           wget -q -O /tmp/opengrep.pem.base64 https://github.com/opengrep/opengrep/releases/download/v${{ env.OPENGREP_VERSION }}/opengrep_manylinux_x86.cert
+           wget -q -O /tmp/opengrep https://github.com/opengrep/opengrep/releases/download/v${{ env.OPENGREP_VERSION }}/opengrep_manylinux_x86
 
-      - name: Download OpenGrep Rules and clean development files
+      - name: Download OpenGrep Rules and clean development files (from main branch)
         run: |
            git clone https://github.com/opengrep/opengrep-rules /tmp/opengrep-rules
            (cd /tmp/opengrep-rules; rm -rfv {stats,scripts,template.yaml,*.schm,.pre-commit-config.yaml,*.md,.gitignore,.codemapignore,.semgrepignore,.github,Makefile,Pipfile*})
