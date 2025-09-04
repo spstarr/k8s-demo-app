@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Perform OpenGrep Analysis
-        run: opengrep scan -q -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto ./scanning-code > opengrep-results.sarif
+        run: opengrep scan -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto ./scanning-code > opengrep-results.sarif
         #outputs: maybe?
         #
       - name: Upload SARIF file results to GitHub Security
