@@ -30,14 +30,6 @@ jobs:
        - name: Checkout
          uses: actions/checkout@v4
 
-       - name: Get the branch name
-         id: get_version
-         run: echo "VERSION=${GITHUB_REF#refs/branches/}" >> $GITHUB_OUTPUT
-
-       #- name: Build image with Podman
-       #  run: |
-       #    podman build -t ${{ env.DOCKER_REGISTRY_URL }}/${{ env.DOCKER_IMAGE_NAME }}:latest .
-
        - name: Build image with Buildah/Podman
          uses: redhat-actions/buildah-build@v2
          with:
