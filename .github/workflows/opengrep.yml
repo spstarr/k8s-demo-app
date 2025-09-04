@@ -16,7 +16,7 @@ concurrency:
 jobs:
   opengrep:
     name: OpenGrep Scanning
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: (github.actor != 'dependabot[bot]')
     permissions:
       contents: read
@@ -31,9 +31,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download OpenGrep 1.9.0
+        run: |
+           wget -q -O /tmp/opengrep.sig.base64 https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86.sig
+           wget -q -O /tmp/opengrep.pem.base64 https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86.cert
+           wget -q -O /tmp/opengrep https://github.com/opengrep/opengrep/releases/download/v1.9.0/opengrep_manylinux_x86
+
+      - name: Download OpenGrep Rules and clean development files
+        run: |
+           git clone https://github.com/opengrep/opengrep-rules /tmp/opengrep-rules
+           (cd /tmp/opengrep-rules; rm -rfv {stats,scripts,template.yaml,*.schm,.pre-commit-config.yaml,*.md,.gitignore,.codemapignore,.semgrepignore,.github,Makefile,Pipfile*})
+
+      - name: Base64 Decode Cert and PEM and verify executable trust
+        run: |
+           base64 -d /tmp/opengrep.sig.base64 > /tmp/opengrep.sig
+           base64 -d /tmp/opengrep.pem.base64 > /tmp/opengrep.pem
+           openssl x509 -in /tmp/opengrep.pem -pubkey -noout > /tmp/opengrep.pub.pem
+           openssl dgst -sha256 -verify /tmp/opengrep.pub.pem -signature /tmp/opengrep.sig /tmp/opengrep
+        continue-on-error: false
+
       - name: Perform OpenGrep Analysis
         run: |
-           opengrep scan -q -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto . > opengrep-results.sarif
+           chmod -v 0755 /tmp/opengrep
+           /tmp/opengrep scan -f /tmp/opengrep-rules/ --verbose --sarif --config auto . > opengrep-results.sarif
 
       - name: Upload SARIF file results to GitHub Security
         if: always()

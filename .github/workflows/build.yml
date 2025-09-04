@@ -14,6 +14,7 @@ jobs:
   opengrep:
     name: OpenGrep Scanner
     uses: ./.github/workflows/opengrep.yml
+    # continue-on-error not supported right now
 
     permissions:
       contents: read

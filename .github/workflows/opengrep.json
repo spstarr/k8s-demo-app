@@ -1,12 +1,15 @@
 {
   "name": "Security: OpenGrep",
-  "description": "Alternative security scanning. Pushes output in SARIF to the Security tab."
-  "categories": ["Security", "Code Scanning"],
+  "description": "Alternative security scanning. Pushes output in SARIF to the Security tab.",
+  "categories": [
+    "Security",
+    "Code Scanning"
+  ],
   "filePatterns": [
-     "(^|/)Dockerfile(\\.[^/]+)?$",
-     ".*\\.(ya?ml)$",
-     ".*\\.(tf|tfvars|tf\\.json)$",
-     ".*\\.",
-  "(js|cjs|mjs|jsx|ts|tsx|py|go|java|kt|rb|cs|cpp|c|swift|rs|php|scala|sh)$"
+    "(^|/)Dockerfile(\\.[^/]+)?$",
+    ".*\\.(ya?ml)$",
+    ".*\\.(tf|tfvars|tf\\.json)$",
+    ".*\\.",
+    "(js|cjs|mjs|jsx|ts|tsx|py|go|java|kt|rb|cs|cpp|c|swift|rs|php|scala|sh)$"
   ]
 }
