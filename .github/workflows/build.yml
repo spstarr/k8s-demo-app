@@ -5,14 +5,26 @@ on:
   push:
     branches:
        - 'main'
+
 env:
   DOCKER_IMAGE_NAME: my-demo
   DOCKER_REGISTRY_URL: localhost:5000
 
 jobs:
+  opengrep:
+    name: OpenGrep Scanner
+    uses: ./.github/workflows/opengrep.yml
+
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+      packages: read
+ 
   build-image:
     name: Build Docker Image
     runs-on: self-hosted
+    needs: opengrep
   
     steps:
        - name: Checkout

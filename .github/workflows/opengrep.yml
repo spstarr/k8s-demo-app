@@ -1,0 +1,51 @@
+name: Security OpenGrep
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  packages: read
+
+concurrency:
+  group: ${{ github.workflow }}--${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  opengrep:
+    name: OpenGrep Scanning
+    runs-on: self-hosted
+    if: (github.actor != 'dependabot[bot]')
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Perform OpenGrep Analysis
+        run: opengrep scan -q -f /usr/share/opengrep/opengrep-rules/ --sarif --config auto ./scanning-code > opengrep-results.sarif
+        #outputs: maybe?
+        #
+      - name: Upload SARIF file results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: opengrep-results.sarif
+          category: opengrep
+       
+      #- name: Save SARIF results as artifact
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: opengrep-scan-results
+      #    path: opengrep-results.sarif
+
+
+
+
+  
