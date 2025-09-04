@@ -1,4 +1,4 @@
-name: build-docker-image-action
+name: Build Image
 run-name: ${{ github.actor }} Build Docker Image
 on:
   workflow_dispatch:
