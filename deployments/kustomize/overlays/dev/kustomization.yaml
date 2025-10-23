@@ -4,10 +4,6 @@ kind: Kustomization
 
 #commonAnnotations:
 
-# Use new-style KRM Functions   
-generators:
-  - /workspace/demo-kustomize-plugins/generators/dev/yamlToConfigMap.yaml
-
 generatorOptions:
    disableNameSuffixHash: false
 

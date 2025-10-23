@@ -8,11 +8,12 @@ resources:
 - pdb.yaml
 - hpa.yaml
 - pv.yaml
+- configmap.yaml
 - pvc.yaml
 - gateway-configmap.yaml
 - gateway.yaml
 - httproute.yaml
-- servicemonitor.yaml
+#- servicemonitor.yaml
 
 # This will be shared in labels and selectors
 commonLabels:

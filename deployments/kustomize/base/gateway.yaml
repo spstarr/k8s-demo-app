@@ -23,6 +23,8 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+      kinds:
+        - kind: HTTPRoute
   infrastructure:
     parametersRef:
       group: ""

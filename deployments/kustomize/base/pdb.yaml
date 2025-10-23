@@ -2,5 +2,6 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: my-demo
+  namespace: test
 spec:
   minAvailable: 1

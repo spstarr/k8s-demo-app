@@ -5,10 +5,10 @@ metadata:
   namespace: test
 spec:
   parentRefs:
-  - name: test # Changed to the new Gateway name
+  - name: test # The Gateway name
     namespace: test
   hostnames:
-  - "myapp.sh0n.net" # Must match the hostname in the Gateway
+  - "webapp.sh0n.net" # Must match the hostname in the Gateway
   rules:
   - matches:
     - path:

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: my-demo
+  namespace: test
   labels:
      app.kubernetes.io/name: my-demo
 spec:
@@ -19,6 +20,8 @@ spec:
         # Wait for the Istio sidecar to be running first so we don't run into funny networking business
         proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
 
+        prometheus.istio.io/merge-metrics: "false"
+
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: "6500"
@@ -35,7 +38,7 @@ spec:
           fsGroupChangePolicy: Always
 
       # Do not allow using mapping for host usernames into pod - NEW
-      hostUsers: false
+      hostUsers: true
 
       containers:
         - name: my-demo
@@ -52,8 +55,6 @@ spec:
               - ALL
           volumeMounts:
             - name: demo-configmaps-volume
-              mountPath: /etc/demo/configs
-            - name: demo-app-configmap-volume
               mountPath: /app/configs
             - name: my-pvc-storage
               mountPath: /test
@@ -101,9 +102,6 @@ spec:
         - name: demo-configmaps-volume
           configMap:
             name: demo-app-configmap
-        - name: demo-app-configmap-volume
-          configMap:
-            name: my-app-configmap
         - name: my-pvc-storage
           persistentVolumeClaim:
             claimName: my-persistentvolume-claim
