@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fedora
+  namespace: test
+  labels:
+    app: fedora
+    sidecar.istio.io/inject: "false"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: fedora
+  template:
+    metadata:
+      labels:
+        name: fedora
+        sidecar.istio.io/inject: "false"
+    spec:
+      hostPID: false
+      hostIPC: false
+      hostNetwork: false
+      tolerations:
+      - operator: Exists
+      containers:
+      - name: fedora
+        image: fedora:rawhide
+        command: [ "sleep", "infinity" ]
+        securityContext:
+          privileged: true
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+             - ALL
+        resources:
+          requests:
+            memory: "0"
+            cpu: "0"
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        ovolumeMounts:
+        #  - name: host
+        #    mountPath: /host
+          #- name: docker
+          #  mountPath: /var/run/docker.sock
+      #volumes:
+        #- name: host
+        #  hostPath:
+        #    path: /
+        #- name: docker
+        #  hostPath:
+        #    path: /var/run/docker.sock
+        #    type: Socket
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%

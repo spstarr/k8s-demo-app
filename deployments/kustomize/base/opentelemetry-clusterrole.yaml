@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otel-collector-scrape
+rules:
+- nonResourceURLs:
+    - /metrics
+  verbs:
+    - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otel-collector-scrape
+subjects:
+- kind: ServiceAccount
+  name: otel-collector-opentelemetry-collector
+  namespace: opentelemetry
+roleRef:
+  kind: ClusterRole
+  name: otel-collector-scrape
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,253 @@
+# values.yaml for OpenTelemetry Collector Helm Chart
+
+# -----------------------------------------------------------------
+# 1. IMAGE CONFIGURATION (REQUIRED)
+# -----------------------------------------------------------------
+image:
+  # Specify the official repository for the OpenTelemetry Collector image
+  repository: otel/opentelemetry-collector-contrib
+  
+  # Specify a stable version tag (e.g., latest stable release)
+  # Check Docker Hub for the latest release tag.
+  #tag: "0.93.0"  
+  tag: "0.138.0"
+ 
+  # 
+  
+  # Optional: Define the pull policy
+  pullPolicy: IfNotPresent
+
+
+presets:
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+    extractAllPodAnnotations: true
+
+mode: deployment #daemonset #deployment
+# The collector configuration is injected directly into the Pod.
+config:
+  # -----------------------------------------------------------------
+  # 1. RECEIVERS: Define the Prometheus receiver
+  # -----------------------------------------------------------------
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: "0.0.0.0:4318"
+
+    statsd:
+      aggregation_interval: 60s
+      endpoint: "0.0.0.0:8125" # Standard StatsD port
+
+      #transport: udp
+      #enable_metric_type: false
+      #enable_simple_tags: false
+      #is_monotonic_counter: false
+      
+      timer_histogram_mapping:
+        - statsd_type: "timing"
+          observer_type: "histogram"
+          histogram:
+             max_size: 160
+        - statsd_type: "histogram"
+          observer_type: "histogram"
+          histogram:
+            max_size: 160
+        - statsd_type: "distribution"
+          observer_type: "histogram"
+          histogram:
+            max_size: 160
+
+    # Name the Prometheus receiver 'prometheus'
+    prometheus:
+      # Use the 'config' field to define the Prometheus scrape config
+      config:
+         scrape_configs:
+          - job_name: 'kubernetes-pods'
+            honor_labels: true
+            scrape_interval: 20s
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+
+              # Drop ours from here for test
+              #- source_labels: [__meta_kubernetes_pod_name]
+              #  action: drop
+              #  regex: my-demo.*
+
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                action: keep
+                regex: true
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $${1}:$${2}
+                target_label: __address__
+              - action: labelmap
+                regex: __meta_kubernetes_pod_label_(.+)
+              - source_labels: [__meta_kubernetes_namespace]
+                action: replace
+                target_label: kubernetes_namespace
+              - source_labels: [__meta_kubernetes_pod_name]
+                action: replace
+                target_label: kubernetes_pod_name
+
+            metric_relabel_configs:
+             - source_labels: []
+               action: replace
+               target_label: testing
+               replacement: WOOT
+
+           # Static configuration for targets that don't change
+          #- job_name: 'static-k8s-service-scrape'
+          #  # Scrape interval and timeout (optional)
+          #  scrape_interval: 15s
+          #  
+          #  # The static_configs section is where you define the explicit FQDN target
+          #  static_configs:
+          #    - targets: [my-demo.test.svc.cluster.local:6500]
+          #      labels:
+          #        # Optional: Add labels to identify the source metrics
+          #        instance: 'k8s-service-target'
+          #        environment: 'production'
+          #        lab: 'home'
+
+  # -----------------------------------------------------------------
+  # 2. PROCESSORS: (Optional) Define any processors here
+  # -----------------------------------------------------------------
+  processors:
+
+    transform:
+      error_mode: ignore
+      metric_statements:
+      - context: datapoint
+        statements:
+          - set(attributes["test"], "passed")
+
+    cumulativetodelta:
+      include:
+        metric_types:
+          - sum
+          - histogram
+
+    #memory_limiter:
+    #  check_interval: 1s
+    #  limit_percentage: 70
+    #  spike_limit_percentage: 30
+
+    batch:
+      send_batch_size: 1000
+      timeout: 30s
+      send_batch_size: 800
+
+    resource:
+      attributes:
+        # Upsert ensures the service.name is set, updating it if necessary.
+      - key: deployment.environment
+        value: "production"
+        action: insert
+      - key: cloud.platform
+        value: "gcp"
+        action: upsert
+      - key: cluster.name
+        from_attribute: k8s-cluster
+        action: insert
+
+    # Kubernetes Attributes Processor: (If running in Kubernetes)
+    # Automatically enriches spans/logs with K8s metadata (Pod/Namespace names).
+    k8sattributes:
+      auth_type: "serviceAccount"
+      passthrough: false
+      extract:
+        metadata:
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.deployment.name
+          - k8s.statefulset.name
+          - k8s.daemonset.name
+          - k8s.cronjob.name
+          - k8s.replicaset.name
+          - k8s.container.name
+          - k8s.namespace.name
+          - k8s.node.name
+        labels:
+          - key: app.kubernetes.io/version
+            tag_name: app.version
+            from: pod
+          - key: app.kubernetes.io/name
+            tag_name: app.name
+            from: pod
+      pod_association:
+        - sources:
+          # Use resource attributes passed by the Agent Collector
+          - from: resource_attribute
+            name: k8s.pod.uid
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources: 
+          - from: connection
+
+    # Generic Attributes Processor: Clean up and redact specific attributes (Span/Log/Metric Attributes).
+    #attributes/cleanup:
+    #  actions:
+#	# Redact a sensitive attribute by deleting it
+#	- key: user.password
+#	  action: delete
+#	# Standardize a key name
+#	- key: client.id
+#	  from_attribute: customer_id
+#	  action: upsert
+#	- key: customer_id # Delete the old key after copying
+#	  action: delete
+#	# Add a static attribute to all telemetry in this pipeline
+#	- key: data_source
+#	  value: "collector-enriched"
+#	  action: insert
+
+  # -----------------------------------------------------------------
+  # 3. EXPORTERS: Define where the collected data goes (e.g., OTLP endpoint)
+  # -----------------------------------------------------------------
+  exporters:
+    prometheus:
+      endpoint: "0.0.0.0:9465"
+   
+      # Don't work?
+      resource_to_telemetry_conversion:
+        enabled: true
+
+    debug:
+      verbosity: detailed
+
+  # -----------------------------------------------------------------
+  # 4. SERVICE: Define the pipeline (Receivers -> Processors -> Exporters)
+  # -----------------------------------------------------------------
+
+  service:
+    telemetry:
+      metrics:
+        address: 0.0.0.0:9464
+      #  #level: basic
+      logs:
+        level: debug
+        encoding: json
+        #
+    pipelines:
+      metrics:
+        receivers: [statsd] #, prometheus]
+        #processors: [k8sattributes, memory_limiter, batch, transform, cumulativetodelta, resource]
+        #
+        processors: [k8sattributes, batch, transform, cumulativetodelta, resource]
+        exporters: [debug, prometheus]
+
+ports:
+  statsd:
+    enabled: true
+    containerPort: 8125
+    servicePort: 8125
+    #hostPort: 8125
+    protocol: UDP
