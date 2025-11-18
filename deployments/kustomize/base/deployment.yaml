@@ -29,6 +29,7 @@ spec:
       labels:
         sidecar.istio.io/inject: "true"
         app.kubernetes.io/name: my-demo
+        app.kubernetes.io/version: 1.2.3.4
     spec:
       securityContext:
           runAsNonRoot: true

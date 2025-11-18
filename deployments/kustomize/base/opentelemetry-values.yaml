@@ -88,8 +88,8 @@ config:
                 regex: ([^:]+)(?::\d+)?;(\d+)
                 replacement: $${1}:$${2}
                 target_label: __address__
-              - action: labelmap
-                regex: __meta_kubernetes_pod_label_(.+)
+              #- action: labelmap
+              #  regex: __meta_kubernetes_pod_label_(.+)
               - source_labels: [__meta_kubernetes_namespace]
                 action: replace
                 target_label: kubernetes_namespace
@@ -187,8 +187,8 @@ config:
           # Use resource attributes passed by the Agent Collector
           - from: resource_attribute
             name: k8s.pod.uid
-          - from: resource_attribute
-            name: k8s.pod.ip
+          #- from: resource_attribute
+          #  name: k8s.pod.ip
         - sources: 
           - from: connection
 
@@ -231,6 +231,7 @@ config:
     telemetry:
       metrics:
         address: 0.0.0.0:9464
+        level: basic
       #  #level: basic
       logs:
         level: debug
@@ -238,7 +239,7 @@ config:
         #
     pipelines:
       metrics:
-        receivers: [statsd] #, prometheus]
+        receivers: [statsd, prometheus]
         #processors: [k8sattributes, memory_limiter, batch, transform, cumulativetodelta, resource]
         #
         processors: [k8sattributes, batch, transform, cumulativetodelta, resource]
@@ -251,3 +252,8 @@ ports:
     servicePort: 8125
     #hostPort: 8125
     protocol: UDP
+  prometheus:
+    enabled: true
+    containerPort: 9465
+    servicePort: 9465
+    protocol: TCP
